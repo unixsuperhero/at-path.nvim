@@ -4,21 +4,32 @@ A dependency-free Neovim Lua plugin that opens the native completion popup when
 an Insert-mode word starts with `@`. Choose a file or directory to insert its
 path. Markdown buffers are enabled by default.
 
-## Install locally
+## Install with lazy.nvim
 
 Requires Neovim 0.12.3 on macOS or Linux. Earlier versions have not been verified.
-No completion framework, external executable, or package installation is needed.
+No completion framework or runtime dependency is needed.
 
-Add this to your `init.lua` for the checkout created here:
+In an existing [lazy.nvim](https://lazy.folke.io/) configuration, add this plugin
+spec to `lua/plugins/at-path.lua`:
 
 ```lua
-vim.opt.runtimepath:prepend(vim.fn.expand('~/proj/at-path.nvim'))
-require('at_path').setup()
+return {
+  'unixsuperhero/at-path.nvim',
+  main = 'at_path',
+  event = 'InsertEnter',
+  opts = {},
+}
 ```
 
-For a different checkout location, change the runtime path. The Lua module lives
-in [`lua/at_path/init.lua`](lua/at_path/init.lua). Nothing loads automatically
-until you call `setup()`.
+Run `:Lazy sync`, then open a Markdown buffer and enter Insert mode. Your lazy.nvim
+configuration must import `plugins` for this file to load. If you keep specs in
+one table instead, add the returned table to that list.
+
+The plugin source is [unixsuperhero/at-path.nvim](https://github.com/unixsuperhero/at-path.nvim).
+The explicit `main` selects its Lua module, `at_path`. lazy.nvim passes `opts` to
+that module's setup function automatically; no configuration callback is needed.
+`event = 'InsertEnter'` loads the plugin on first entering Insert mode. The
+plugin's default scope still limits completion to Markdown.
 
 ## Use
 
@@ -63,18 +74,22 @@ there is no recursive index or repository restriction.
 
 ## Buffer scope
 
+The install spec's `opts = {}` keeps completion Markdown-only. To enable every
+buffer, replace that field with:
+
 ```lua
--- Default: Markdown only.
-require('at_path').setup()
-
--- All buffers. The same instruction appears beside the default in the code.
-require('at_path').setup({ filetypes = {} })
-
--- An explicit set of filetypes.
-require('at_path').setup({ filetypes = { 'markdown', 'text' } })
+opts = { filetypes = {} },
 ```
 
-Calling `setup()` again replaces this plugin's autocommands and resets navigation.
+To enable an explicit set of filetypes instead, use:
+
+```lua
+opts = { filetypes = { 'markdown', 'text' } },
+```
+
+Keep `event = 'InsertEnter'` in either case. This loads the plugin even when the
+first buffer is not Markdown; `opts.filetypes` controls where completion works.
+
 There are no key mappings or global completion option changes. Each popup call
 briefly uses a buffer-local `completeopt` value with `menuone,noselect`, then
 restores the original local value.

@@ -125,7 +125,8 @@ end
 
 function M.setup(opts)
   opts = opts or {}
-  -- Enable in every buffer with require('at_path').setup({ filetypes = {} }).
+  -- In the lazy.nvim spec, use opts = { filetypes = {} } for every buffer.
+  -- Keep event = 'InsertEnter' and omit ft so all filetypes can load the plugin.
   local filetypes = opts.filetypes or { "markdown" }
   session, last, blocked = nil, nil, nil
   generation = generation + 1
